@@ -57,6 +57,28 @@ const run = async () => {
       const result = await orderCollection.insertOne(doc);
       res.send(result);
     });
+
+    // get orders
+
+    app.get("/order", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+
+      const newOrder = [];
+
+      for (const order of orders) {
+        const keys = order.orderedFood;
+        const ids = keys.map((id) => ObjectId(id));
+        const cursor2 = foodCollection.find({ _id: { $in: ids } });
+        const orderedFood = await cursor2.toArray();
+        order.orderedFood = orderedFood;
+        newOrder.push(order);
+      }
+
+      res.send(newOrder);
+    });
   } finally {
   }
 };
